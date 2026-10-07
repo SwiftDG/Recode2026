@@ -14,6 +14,11 @@ test('lesson carries a checked source reference through the model response', asy
   const lesson = { title: 'Entry point', explanation: 'The app starts in main.', trace: [{ point: 'App is imported.', citation: { path: 'src/main.tsx', line: 1 } }], sayIt: 'I can trace the entry point.', check: 'Where does App render?', limitation: 'This does not establish hosting.' }
   const fakeFetch = async (_url, options) => {
     assert.equal(options.headers['x-goog-api-key'], 'test-key')
+    const payload = JSON.parse(options.body)
+    assert.equal(payload.generationConfig.responseMimeType, 'application/json')
+    assert.equal(payload.generationConfig.responseSchema.type, 'OBJECT')
+    assert.equal(payload.generationConfig.responseSchema.properties.trace.items.type, 'OBJECT')
+    assert.equal(payload.generationConfig.responseFormat, undefined)
     return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(lesson) }] } }] }), { status: 200 })
   }
   assert.equal((await analyze(input, { key: 'test-key', fetchImpl: fakeFetch })).trace[0].citation.line, 1)

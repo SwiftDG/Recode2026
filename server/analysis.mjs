@@ -72,6 +72,12 @@ const questionSchema = { type: 'object', properties: {
   }, required: ['prompt','choices','correct','reason','citation'] } },
 }, required: ['questions'] }
 
+function legacySchema(value) {
+  if (Array.isArray(value)) return value.map(legacySchema)
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, key === 'type' ? item.toUpperCase() : legacySchema(item)]))
+  return value
+}
+
 export function checkOutput(result, action, evidence) {
   const cited = value => evidence.some(file => file.path === value?.path && Number.isInteger(value.line) && value.line > 0 && value.line <= file.maxLine)
   const safeText = (value, min = 5) => typeof value === 'string' && value.trim().length > min && value.length <= 1500
@@ -107,7 +113,7 @@ export async function analyze(input, options = {}) {
   const model = process.env.GEMINI_MODEL || 'gemini-3.8-flash'
   const response = await (options.fetchImpl ?? fetch)(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key }, signal: AbortSignal.timeout(50000),
-    body: JSON.stringify({ systemInstruction: { parts: [{ text: systemInstruction() }] }, contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseFormat: { text: { mimeType: 'application/json', schema: action === 'lesson' ? lessonSchema : questionSchema } }, temperature: 0.35, maxOutputTokens: action === 'lesson' ? 1800 : 4500 } }),
+    body: JSON.stringify({ systemInstruction: { parts: [{ text: systemInstruction() }] }, contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', responseSchema: legacySchema(action === 'lesson' ? lessonSchema : questionSchema), temperature: 0.35, maxOutputTokens: action === 'lesson' ? 1800 : 4500 } }),
   })
   if (!response.ok) {
     if (response.status === 429) throw new Error('AI quota reached. Wait a moment and try again.')
