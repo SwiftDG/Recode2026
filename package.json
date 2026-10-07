@@ -7,9 +7,12 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:api": "node --env-file=.env.local server/dev.mjs",
+    "test": "node --test server/*.test.mjs"
   },
   "dependencies": {
+    "jszip": "^3.10.2",
     "lucide-react": "^1.52.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

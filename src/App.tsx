@@ -1,109 +1,48 @@
-import { useMemo, useState } from 'react'
-import { ArrowRight, Check, ChevronRight, FileCode2, GitBranch, Lightbulb, ShieldCheck, Sparkles } from 'lucide-react'
-import { challenge, initialPlan, modelPlan, repoFiles, review } from './data'
+import { useEffect, useState } from 'react'
+import { ArrowLeft, ArrowRight, Check, ChevronDown, FileArchive, GitBranch as Github, Upload } from 'lucide-react'
+import { analysisFiles, example, importGitHub, importZip, makeTopics, type Project } from './project'
 
-type Stage = 1 | 2 | 3 | 4
-
-const stages: { id: Stage; label: string }[] = [
-  { id: 1, label: 'Map' },
-  { id: 2, label: 'Plan' },
-  { id: 3, label: 'Review' },
-  { id: 4, label: 'Change' },
-]
-
+type Step = 'import' | 'role' | 'learn' | 'test' | 'result'
+type Citation = { path: string; line: number }
+type Lesson = { title: string; explanation: string; trace: { point: string; citation: Citation }[]; sayIt: string; check: string; limitation: string }
+type Question = { prompt: string; choices: string[]; correct: number; reason: string; citation: Citation }
+type Result = { section: number; correct: boolean; question: Question }
+const sections = ['Stack & entry', 'UI & navigation', 'State & data', 'Styles & accessibility', 'Build & hosting']
+async function ask<T>(project: Project, action: 'lesson' | 'quiz', index: number): Promise<T> {
+  const response = await fetch('/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, index, role: 'frontend', files: analysisFiles(project, index, action) }) })
+  const data = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(data.error || `Analysis failed (${response.status}).`)
+  return data as T
+}
+function Evidence({ citation, project }: { citation: Citation; project: Project }) {
+  const [open, setOpen] = useState(false)
+  const lines = project.files.find(f => f.path === citation.path)?.content.split('\n') ?? []
+  const start = Math.max(0, citation.line - 4)
+  return <div className="evidence"><button onClick={() => setOpen(!open)} aria-expanded={open}><span className="file-dot"/>{citation.path}<span className="line-number">:{citation.line}</span><ChevronDown size={14} className={open ? 'up' : ''}/></button>{open && <pre>{lines.slice(start, citation.line + 4).map((line, i) => <span className={start + i + 1 === citation.line ? 'target-line' : ''} key={i}><b>{start + i + 1}</b>{line || ' '}{'\n'}</span>)}</pre>}</div>
+}
 export default function App() {
-  const [stage, setStage] = useState<Stage>(1)
-  const [plan, setPlan] = useState(initialPlan)
-  const [selectedFile, setSelectedFile] = useState(repoFiles[0])
-  const [reviewed, setReviewed] = useState(false)
-  const [showExample, setShowExample] = useState(false)
-
-  const stageCopy = useMemo(() => ({
-    1: 'See the codebase as connected responsibilities, not a folder of files.',
-    2: 'Write the change plan before you touch code.',
-    3: 'Compare your plan against the dependencies you may have missed.',
-    4: 'Submit a small patch and explain what you changed.',
-  })[stage], [stage])
-
-  const nextStage = () => setStage((current) => Math.min(4, current + 1) as Stage)
-
-  return (
-    <main>
-      <header className="topbar">
-        <a className="brand" href="#top" aria-label="Recode home"><span>R</span> recode</a>
-        <div className="repo-pill"><GitBranch size={15} /> starter/profile-settings</div>
-        <button className="text-button">Exit session</button>
-      </header>
-
-      <section className="session-header" id="top">
-        <div>
-          <p className="eyebrow">Ownership session 01</p>
-          <h1>Change the code.<br /><em>Know why it works.</em></h1>
-          <p className="intro">Recode helps you trace a real change through an unfamiliar codebase before you ship it.</p>
-        </div>
-        <aside className="safety-note"><ShieldCheck size={20} /><span><strong>Read-only analysis</strong><br />Recode maps code. It never runs an imported repository.</span></aside>
-      </section>
-
-      <nav className="progress" aria-label="Session progress">
-        {stages.map((item, index) => (
-          <button key={item.id} className={stage === item.id ? 'active' : stage > item.id ? 'done' : ''} onClick={() => setStage(item.id)}>
-            <span>{stage > item.id ? <Check size={14} /> : `0${item.id}`}</span>{item.label}
-            {index < stages.length - 1 && <i />}
-          </button>
-        ))}
-      </nav>
-
-      <section className="stage-intro">
-        <p className="eyebrow">{stages[stage - 1].label}</p>
-        <h2>{stageCopy}</h2>
-      </section>
-
-      {stage === 1 && <MapStage selectedFile={selectedFile} onSelect={setSelectedFile} onNext={nextStage} />}
-      {stage === 2 && <PlanStage plan={plan} setPlan={setPlan} showExample={showExample} setShowExample={setShowExample} onNext={nextStage} />}
-      {stage === 3 && <ReviewStage reviewed={reviewed} setReviewed={setReviewed} onNext={nextStage} />}
-      {stage === 4 && <ChangeStage />}
-    </main>
-  )
-}
-
-function MapStage({ selectedFile, onSelect, onNext }: { selectedFile: typeof repoFiles[number]; onSelect: (file: typeof repoFiles[number]) => void; onNext: () => void }) {
-  return <section className="workspace map-layout">
-    <article className="panel map-panel">
-      <div className="panel-heading"><div><p className="eyebrow">Repository map</p><h3>Profile update path</h3></div><span className="count">5 connected files</span></div>
-      <div className="map-canvas">
-        <svg aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M20 50 C31 50, 29 25, 42 25 M20 50 C31 50, 29 73, 42 73 M52 25 C62 25, 61 50, 72 50 M82 50 L89 50" /></svg>
-        {repoFiles.map((file) => <button key={file.path} onClick={() => onSelect(file)} className={`file-node ${selectedFile.path === file.path ? 'selected' : ''}`} style={file.position}><FileCode2 size={16} /><span>{file.label}</span><small>{file.role}</small></button>)}
-      </div>
-      <div className="legend"><span><i className="dot component" /> UI</span><span><i className="dot contract" /> Contract</span><span><i className="dot server" /> Server</span><span><i className="dot data" /> Data</span></div>
-    </article>
-    <aside className="panel evidence-panel">
-      <p className="eyebrow">Selected evidence</p><h3>{selectedFile.label}</h3><p className="path">{selectedFile.path}</p><p>{selectedFile.detail}</p>
-      <div className="code-block"><span>imports</span><code>{selectedFile.path.includes('ProfileForm') ? "updateProfile from '../../api/profile'" : selectedFile.path.includes('profileSchema') ? "z from 'zod'" : 'profileUpdate contract'}</code></div>
-      <button className="primary" onClick={onNext}>Use this map to plan <ArrowRight size={16} /></button>
-    </aside>
-  </section>
-}
-
-function PlanStage({ plan, setPlan, showExample, setShowExample, onNext }: { plan: string; setPlan: (value: string) => void; showExample: boolean; setShowExample: (value: boolean) => void; onNext: () => void }) {
-  return <section className="workspace plan-layout">
-    <article className="challenge-card"><div className="challenge-kicker"><Sparkles size={16} /> Grounded change request</div><h3>{challenge.title}</h3><p>{challenge.context}</p><div className="success-list"><strong>Done means:</strong>{challenge.success.map((item) => <span key={item}><Check size={15} />{item}</span>)}</div></article>
-    <article className="panel plan-panel"><div className="panel-heading"><div><p className="eyebrow">Your approach</p><h3>What would you change first?</h3></div><button className="text-button" onClick={() => setShowExample(!showExample)}>{showExample ? 'Hide' : 'See'} a strong example</button></div>
-      <textarea aria-label="Change plan" value={showExample ? modelPlan : plan} onChange={(event) => setPlan(event.target.value)} readOnly={showExample} />
-      <div className="plan-footer"><span>{(showExample ? modelPlan : plan).trim().split(/\s+/).length} words</span><button className="primary" onClick={onNext}>Review my plan <ChevronRight size={16} /></button></div>
-    </article>
-  </section>
-}
-
-function ReviewStage({ reviewed, setReviewed, onNext }: { reviewed: boolean; setReviewed: (value: boolean) => void; onNext: () => void }) {
-  return <section className="workspace review-layout">
-    <article className="panel review-summary"><p className="eyebrow">Plan review</p><h3>{reviewed ? 'Your plan has a solid start.' : 'Ready to compare your plan?'}</h3><p>{reviewed ? 'You found the visible form and client request. The repository map shows three linked responsibilities still uncovered.' : 'Recode compares your proposed change against the repository map and task requirements.'}</p>
-      {!reviewed && <button className="primary" onClick={() => setReviewed(true)}>Compare with codebase <GitBranch size={16} /></button>}
-      {reviewed && <><div className="coverage"><span><Check size={16} /> Covered: {review.covered.join(' · ')}</span></div><button className="primary" onClick={onNext}>Prepare a patch <ArrowRight size={16} /></button></>}
-    </article>
-    {reviewed && <article className="panel misses"><div className="panel-heading"><div><p className="eyebrow">What the plan misses</p><h3>Three dependencies need attention</h3></div><span className="count warning">Needs review</span></div>{review.missed.map((item, index) => <div className="miss" key={item.title}><span>0{index + 1}</span><div><h4>{item.title}</h4><p>{item.text}</p><code>{item.file}</code></div></div>)}</article>}
-  </section>
-}
-
-function ChangeStage() {
-  return <section className="workspace change-layout"><article className="panel diff-panel"><div className="panel-heading"><div><p className="eyebrow">Small change</p><h3>Submit a patch for review</h3></div><span className="count">No code is executed</span></div><div className="diff"><span className="muted">// Paste a unified diff here</span><span className="add">+ emergencyContact: &#123; name, phone &#125;</span><span className="add">+ profileSchema.extend(...)</span><span className="add">+ updateProfile(payload)</span></div><button className="primary" onClick={() => alert('The live API will review this patch once the analysis service is connected.')}>Review patch <ArrowRight size={16} /></button></article><aside className="debrief"><Lightbulb size={20} /><h3>The point is not a perfect score.</h3><p>It is being able to explain what a change touches, what it risks, and why you chose it.</p></aside></section>
+  const [step, setStep] = useState<Step>('import'), [mode, setMode] = useState<'github' | 'zip'>('github'), [url, setUrl] = useState('')
+  const [project, setProject] = useState<Project | null>(null), [consent, setConsent] = useState(false), [topicIndex, setTopicIndex] = useState(0)
+  const [lessons, setLessons] = useState<Record<number, Lesson>>({}), [lessonLoading, setLessonLoading] = useState(false), [lessonError, setLessonError] = useState('')
+  const [section, setSection] = useState(0), [questions, setQuestions] = useState<Question[]>([]), [questionIndex, setQuestionIndex] = useState(0), [answer, setAnswer] = useState<number | null>(null)
+  const [results, setResults] = useState<Result[]>([]), [quizLoading, setQuizLoading] = useState(false), [quizError, setQuizError] = useState('')
+  const [loading, setLoading] = useState(false), [error, setError] = useState('')
+  const topics = project ? makeTopics(project) : [], topic = topics[topicIndex], lesson = lessons[topicIndex], current = questions[questionIndex]
+  function loaded(value: Project) { setProject(value); setError(''); setConsent(false); setLessons({}); setResults([]); setStep('role'); setTopicIndex(0) }
+  function reset() { setProject(null); setStep('import'); setLessons({}); setResults([]); setQuestionIndex(0); setQuestions([]) }
+  async function fromUrl() { setLoading(true); setError(''); try { loaded(await importGitHub(url)) } catch (e) { setError(e instanceof Error ? e.message : 'Import failed.') } finally { setLoading(false) } }
+  async function fromFile(file?: File) { if (!file) return; setLoading(true); setError(''); try { loaded(await importZip(file)) } catch (e) { setError(e instanceof Error ? e.message : 'Cannot read ZIP.') } finally { setLoading(false) } }
+  async function loadLesson(index: number) { if (!project) return; setLessonLoading(true); setLessonError(''); try { const value = await ask<Lesson>(project, 'lesson', index); setLessons(previous => ({ ...previous, [index]: value })) } catch (e) { setLessonError(e instanceof Error ? e.message : 'Lesson could not be generated.') } finally { setLessonLoading(false) } }
+  async function loadSection(index: number) { if (!project) return; setQuizLoading(true); setQuizError(''); setQuestions([]); setQuestionIndex(0); setAnswer(null); try { const value = await ask<{ questions: Question[] }>(project, 'quiz', index); setQuestions(value.questions) } catch (e) { setQuizError(e instanceof Error ? e.message : 'Questions could not be generated.') } finally { setQuizLoading(false) } }
+  useEffect(() => { if (step === 'learn' && project && consent && !lessons[topicIndex] && !lessonLoading && !lessonError) void loadLesson(topicIndex) }, [step, project, consent, topicIndex, lessons, lessonLoading, lessonError])
+  function startTest() { setSection(0); setResults([]); setStep('test'); void loadSection(0) }
+  function advance() { if (!current || answer === null) return; setResults(previous => [...previous, { section, correct: answer === current.correct, question: current }]); setAnswer(null); if (questionIndex + 1 < questions.length) setQuestionIndex(n => n + 1); else if (section < 4) { const next = section + 1; setSection(next); void loadSection(next) } else setStep('result') }
+  const currentStep = ['import', 'role', 'learn', 'test', 'result'].indexOf(step)
+  return <div className="app"><header className="top"><button className="mark" onClick={reset} aria-label="Recode home"><span className="mark-shape">r.</span><strong>recode</strong></button><span className="top-context">A reading room for the code you ship</span><span className="top-right">FORGEHACKS 2026 <i/> AI + EDUCATION</span></header><div className="shell"><aside className="rail"><div className="rail-heading">YOUR SESSION</div>{['Import source', 'Choose role', 'Read the code', 'Understanding check', 'Review'].map((item, i) => <div className={`rail-step ${i === currentStep ? 'current' : ''} ${i < currentStep ? 'passed' : ''}`} key={item}><span>{String(i + 1).padStart(2, '0')}</span>{item}{i < currentStep && <Check size={13}/>}</div>)}<div className="rail-foot">No code is run. Recode reads selected text files and shows its evidence.</div></aside><main className="main">
+  {step === 'import' && <><div className="page-kicker">01 / IMPORT</div><h1>Know the code behind your project.</h1><p className="intro">When someone asks how your app works, open the project here. Recode makes a reading path for your role and checks what you can explain.</p><section className="workspace import-workspace"><div className="workspace-head"><div><span className="overline">SOURCE</span><h2>Add a project</h2></div><span className="scope">React / Vite · JS / TS · small repositories</span></div><div className="tab-strip" role="tablist"><button role="tab" aria-selected={mode === 'github'} className={mode === 'github' ? 'selected' : ''} onClick={() => { setMode('github'); setError('') }}><Github size={16}/> Public GitHub</button><button role="tab" aria-selected={mode === 'zip'} className={mode === 'zip' ? 'selected' : ''} onClick={() => { setMode('zip'); setError('') }}><FileArchive size={16}/> ZIP file</button></div>{mode === 'github' ? <div className="import-body"><label htmlFor="repo-url">Repository URL</label><div className="input-action"><input id="repo-url" type="url" placeholder="https://github.com/owner/repository" value={url} onChange={event => setUrl(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && url.trim() && !loading) void fromUrl() }}/><button className="button-dark" disabled={loading || !url.trim()} onClick={fromUrl}>{loading ? 'Reading files…' : 'Read repository'}<ArrowRight size={16}/></button></div><p className="helper">On GitHub, open your public repository and copy the URL in the address bar. No GitHub sign-in here.</p></div> : <div className="import-body"><label className="drop"><Upload size={22}/><strong>{loading ? 'Opening ZIP…' : 'Choose your project ZIP'}</strong><span>Maximum 10 MB. The browser extracts supported source files.</span><input type="file" accept=".zip,application/zip" disabled={loading} onChange={event => void fromFile(event.target.files?.[0])}/></label><details className="instructions"><summary>Get a ZIP from GitHub <ChevronDown size={15}/></summary><ol><li>Open the repository on GitHub.</li><li>Tap <strong>Code</strong> above the file list.</li><li>Choose <strong>Download ZIP</strong>, then select it here without unzipping.</li></ol><p>For a folder on your device, compress the project folder into a ZIP. Exclude <code>node_modules</code>, build output and secrets.</p></details></div>}{error && <p className="error" role="alert">{error}</p>}</section><button className="example-link" onClick={() => loaded(example)}>Try the small guided project <ArrowRight size={16}/></button><p className="quiet-note">Public repositories and local ZIPs are read in your browser. An AI lesson sends selected source excerpts to Gemini after you consent. Do not import confidential code or secrets.</p></>}
+  {step === 'role' && project && <><button className="back" onClick={reset}><ArrowLeft size={16}/> Import a different project</button><div className="page-kicker">02 / ROLE</div><h1>Which part do you need to explain?</h1><p className="intro">Your role sets the reading path. It does not prove who wrote each file.</p><div className="project-summary"><span>PROJECT</span><strong>{project.name}</strong><small>{project.source} · {project.files.length} readable files</small></div><section className="role-choice"><div className="role-code">FE</div><div><span className="overline">AVAILABLE ROLE</span><h2>Frontend developer</h2><p>Follow the app from its browser entry point through components, interaction, styling, requests and build evidence.</p></div><Check size={19}/></section><label className="consent"><input type="checkbox" checked={consent} onChange={event => setConsent(event.target.checked)}/><span>I understand selected source excerpts will be sent to Google Gemini to generate lessons and questions. I have permission to share this code.</span></label><p className="helper">This build teaches the frontend role in small React/Vite projects. Other roles need separate, tested paths.</p><button className="button-dark next" disabled={!consent} onClick={() => setStep('learn')}>Open reading path <ArrowRight size={16}/></button></>}
+  {step === 'learn' && project && topic && <><div className="compact-head"><div><button className="back" onClick={() => setStep('role')}><ArrowLeft size={16}/> Role</button><div className="page-kicker">03 / FRONTEND READING</div><h1>{project.name}</h1><p className="intro">Choose a chapter. Each explanation should point back to a file you can inspect.</p></div><button className="button-dark" onClick={startTest}>Start the check <ArrowRight size={16}/></button></div><div className="reading-layout"><nav className="chapter-list" aria-label="Reading chapters"><div className="chapter-label">CHAPTERS <span>{Object.keys(lessons).length} / 8 read</span></div>{topics.map((item, index) => <button key={item.title} className={index === topicIndex ? 'selected' : ''} onClick={() => { setTopicIndex(index); setLessonError('') }}><span>{String(index + 1).padStart(2, '0')}</span><strong>{item.title}</strong>{lessons[index] && <Check size={14}/>}</button>)}</nav><article className="reader"><div className="reader-head"><span>CHAPTER {String(topicIndex + 1).padStart(2, '0')} / 08</span><span>{topic.files.length} relevant files found</span></div><h2>{topic.title}</h2><p className="reader-goal">{topic.goal}</p><div className="observed"><span>FIRST PASS · FILE SCAN</span><p>{topic.finding}</p></div>{lessonLoading && <div className="loading-state" role="status"><span className="pulse"/>Reading selected source and drafting this chapter…</div>}{lessonError && <div className="error-block" role="alert">{lessonError}<button onClick={() => void loadLesson(topicIndex)}>Retry chapter</button></div>}{lesson && <div className="lesson-body"><div className="section-title">EXPLANATION</div><p>{lesson.explanation}</p><div className="section-title">TRACE IT IN THE PROJECT</div><div className="trace-list">{lesson.trace.map((item, index) => <div className="trace" key={`${item.citation.path}-${index}`}><span>{String(index + 1).padStart(2, '0')}</span><div><p>{item.point}</p><Evidence citation={item.citation} project={project}/></div></div>)}</div><div className="say-it"><span>TRY SAYING IT</span><p>“{lesson.sayIt}”</p></div><div className="reader-bottom"><div><span>CHECK YOURSELF</span><p>{lesson.check}</p></div><div><span>WHAT THIS DOESN’T PROVE</span><p>{lesson.limitation}</p></div></div></div>}{!lesson && !lessonLoading && !lessonError && <button className="button-line" onClick={() => void loadLesson(topicIndex)}>Generate this chapter <ArrowRight size={15}/></button>}</article></div><p className="quiet-note">Generated explanations can be wrong. Inspect the cited lines before using an answer in an interview or demo.</p></>}
+  {step === 'test' && project && <><button className="back" onClick={() => setStep('learn')}><ArrowLeft size={16}/> Reading path</button><div className="page-kicker">04 / UNDERSTANDING CHECK</div><h1>Explain what this code does.</h1><p className="intro">Five sections, up to ten questions each. Your answer gets a file reference and an explanation. Small projects may yield fewer than 50 useful questions.</p><div className="exam-layout"><div className="exam-map"><div className="chapter-label">SECTIONS <span>{results.length} answered</span></div>{sections.map((item, index) => <div className={`exam-row ${index === section ? 'selected' : ''}`} key={item}><span>{String(index + 1).padStart(2, '0')}</span>{item}<small>{results.filter(r => r.section === index).length}</small></div>)}</div><section className="exam"><div className="exam-head"><span>{sections[section].toUpperCase()}</span><span>{questions.length ? `${questionIndex + 1} / ${questions.length}` : 'PREPARING'}</span></div><div className="progress"><i style={{ width: `${questions.length ? ((questionIndex + 1) / questions.length) * 100 : 0}%` }}/></div>{quizLoading && <div className="loading-state" role="status"><span className="pulse"/>Writing questions from the selected source…</div>}{quizError && <div className="error-block" role="alert">{quizError}<button onClick={() => void loadSection(section)}>Retry section</button></div>}{current && !quizLoading && <><div className="question-number">QUESTION {String(questionIndex + 1).padStart(2, '0')}</div><h2>{current.prompt}</h2><div className="choices">{current.choices.map((choice, index) => <button key={`${index}-${choice}`} disabled={answer !== null} onClick={() => setAnswer(index)} className={`${answer === index ? 'chosen' : ''} ${answer !== null && current.correct === index ? 'correct' : ''}`}><span>{String.fromCharCode(65 + index)}</span>{choice}</button>)}</div>{answer !== null && <div className="answer"><strong>{answer === current.correct ? 'Yes.' : 'Look again.'}</strong><p>{current.reason}</p><Evidence citation={current.citation} project={project}/></div>}<button className="button-dark" disabled={answer === null} onClick={advance}>{questionIndex + 1 === questions.length ? section === 4 ? 'See review' : 'Next section' : 'Next question'} <ArrowRight size={16}/></button></>}</section></div></>}
+  {step === 'result' && project && <><div className="page-kicker">05 / REVIEW</div><h1>What can you explain now?</h1><p className="intro">This is a practice result, not a certificate of ownership or competence. Use the misses to decide which files to read again.</p><div className="score"><strong>{results.filter(r => r.correct).length}<span> / {results.length}</span></strong><p>questions answered correctly</p></div><div className="review-list"><div className="chapter-label">BY SECTION</div>{sections.map((item, index) => { const group = results.filter(r => r.section === index); return <div key={item}><span>{String(index + 1).padStart(2, '0')}</span><strong>{item}</strong><small>{group.filter(r => r.correct).length} / {group.length}</small></div> })}</div><h2 className="review-title">Revisit these questions</h2>{results.filter(r => !r.correct).length ? results.filter(r => !r.correct).map((result, index) => <div className="miss" key={index}><p>{result.question.prompt}</p><small>{result.question.reason}</small><Evidence citation={result.question.citation} project={project}/></div>) : <p className="helper">No missed questions in this run. Try explaining the cited flow aloud without reading it.</p>}<div className="result-actions"><button className="button-dark" onClick={() => setStep('learn')}>Review chapters <ArrowRight size={16}/></button><button className="button-line" onClick={startTest}>New question run</button></div></>}
+</main></div></div>
 }
