@@ -27,3 +27,13 @@ test('questions need four distinct options and a real source line', () => {
   assert.throws(() => checkOutput({ questions: [{ ...question, citation: { path: 'README.md', line: 1 } }] }, 'quiz', evidence), /verifiable/)
   assert.throws(() => validateInput({ action: 'quiz', role: 'frontend', index: 0, files: [{ path: '.env', content: 'KEY=123' }] }), /Unsupported/)
 })
+
+test('provider 400 reveals a short, redacted diagnostic', async () => {
+  const input = { action: 'lesson', role: 'frontend', index: 0, files }
+  const fakeFetch = async () => new Response(JSON.stringify({ error: { status: 'INVALID_ARGUMENT', message: 'Unknown name "responseFormat"; test-key is invalid here' } }), { status: 400 })
+  await assert.rejects(() => analyze(input, { key: 'test-key', fetchImpl: fakeFetch }), error => {
+    assert.match(error.message, /Unknown name "responseFormat"/)
+    assert.doesNotMatch(error.message, /test-key/)
+    return true
+  })
+})

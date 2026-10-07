@@ -111,7 +111,15 @@ export async function analyze(input, options = {}) {
   })
   if (!response.ok) {
     if (response.status === 429) throw new Error('AI quota reached. Wait a moment and try again.')
-    throw new Error(`AI service returned ${response.status}. Check the model and key on the server.`)
+    const failure = await response.json().catch(() => null)
+    const providerMessage = typeof failure?.error?.message === 'string' ? failure.error.message : ''
+    const providerStatus = typeof failure?.error?.status === 'string' ? failure.error.status : ''
+    if (/API_KEY_INVALID|API key not valid/i.test(`${providerStatus} ${providerMessage}`)) throw new Error('Gemini rejected the API key. Check GEMINI_API_KEY in Vercel and redeploy.')
+    if (response.status === 400) {
+      const detail = providerMessage.replaceAll(key, '[redacted]').replace(/\s+/g, ' ').slice(0, 240)
+      throw new Error(`Gemini rejected the request (400): ${detail || providerStatus || 'invalid argument'}`)
+    }
+    throw new Error(`Gemini returned ${response.status}${providerStatus ? ` (${providerStatus})` : ''}. Check the model and quota on the server.`)
   }
   const body = await response.json()
   const content = body.candidates?.[0]?.content?.parts?.map(part => part.text ?? '').join('')
