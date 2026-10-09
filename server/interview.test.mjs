@@ -19,3 +19,9 @@ test('interview rejects a citation outside selected source', async () => {
   const fakeFetch = async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ reaction: 'This answer needs more detail.', nextStep: 'Check the project manifest again.', citation: { path: '.env', line: 1 } }) }] } }] }), { status: 200 })
   await assert.rejects(() => interview(input, { key: 'test-key', fetchImpl: fakeFetch }), /incomplete source note/)
 })
+
+test('interview replaces a brace-only citation with an actual dependency line', async () => {
+  const fakeFetch = async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ reaction: 'The answer names React as a dependency.', nextStep: 'Explain how the entry file mounts the application.', citation: { path: 'package.json', line: 1 } }) }] } }] }), { status: 200 })
+  const result = await interview(input, { key: 'test-key', fetchImpl: fakeFetch })
+  assert.deepEqual(result.citation, { path: 'package.json', line: 2 })
+})
