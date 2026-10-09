@@ -75,7 +75,10 @@ export function makeTopics(project: Project): Topic[] {
   const routes = pick(f => /createBrowserRouter|<Route|RouterProvider|routes\s*=/.test(f.content))
   const state = pick(f => /useState|useReducer|useContext|zustand|redux/.test(f.content))
   const api = pick(f => /\bfetch\(|\baxios\.|supabase\.from/.test(f.content))
-  const css = pick(f => /\.(css|scss)$/.test(f.path))
+  const css = pick(f => /\.(css|scss)$/.test(f.path)).sort((a, b) => {
+    const used = (file: SourceFile) => project.files.some(source => /\.[jt]sx?$/.test(source.path) && source.content.split('\n').some(line => /\bimport\b/.test(line) && line.includes(file.path.split('/').pop() ?? '')))
+    return Number(used(b)) - Number(used(a))
+  })
   const deploy = pick(f => /vercel\.json|netlify\.toml|wrangler\.toml|Dockerfile|\.github\/workflows/.test(f.path))
   const font = css.map(f => f.content.match(/font-family:\s*['"]?([^,'";\n]+)/i)?.[1]?.trim()).find(Boolean)
   return [

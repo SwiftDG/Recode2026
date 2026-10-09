@@ -45,9 +45,11 @@ test('provider 400 reveals a short, redacted diagnostic', async () => {
 
 test('transient 503 is retried once before returning a valid lesson', async () => {
   let calls = 0
+  const models = []
   const lesson = { title: 'Entry point', explanation: 'This is the browser entry file.', trace: [{ point: 'App is imported here.', citation: { path: 'src/main.tsx', line: 1 } }], sayIt: 'I can trace the startup path.', check: 'Where does App render?', limitation: 'This does not prove deployment.' }
-  const fakeFetch = async () => {
+  const fakeFetch = async url => {
     calls += 1
+    models.push(url)
     return calls === 1
       ? new Response(JSON.stringify({ error: { status: 'UNAVAILABLE' } }), { status: 503 })
       : new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(lesson) }] } }] }), { status: 200 })
@@ -55,4 +57,8 @@ test('transient 503 is retried once before returning a valid lesson', async () =
   const result = await analyze({ action: 'lesson', role: 'frontend', index: 1, files }, { key: 'test-key', fetchImpl: fakeFetch })
   assert.equal(calls, 2)
   assert.equal(result.trace[0].citation.path, 'src/main.tsx')
+  if (!process.env.GEMINI_MODEL) {
+    assert.match(models[0], /gemini-3\.5-flash-lite/)
+    assert.match(models[1], /gemini-3\.1-flash-lite/)
+  }
 })
