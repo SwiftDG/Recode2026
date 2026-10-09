@@ -25,9 +25,9 @@ Record the first rough cut early. Verify the mobile export, readable captions, b
 
 **Problem:** People can ship with AI coding tools or a team but still struggle to explain their own project's stack, entry point and interaction in a review, interview or hackathon demo.
 
-**What it does:** Recode accepts a small public GitHub repo or ZIP, asks which role the learner wants to understand, and guides frontend developers through four source-backed stops. A five-question check returns immediate feedback and a cited file. Optional Gemini requests add depth and longer question sections. The learner can continue through the core path even if Gemini is unavailable.
+**What it does:** Recode accepts a small public GitHub repo or ZIP, asks which role the learner wants to understand, and guides frontend developers through four source-backed stops. A five-question check returns immediate feedback and a cited file. Optional Gemini requests add source-linked explanations. The learner can continue through the core path even if Gemini is unavailable.
 
-**How we built it:** React, TypeScript, Vite, JSZip, GitHub REST API, a Vercel Node Function and Gemini for optional explanations/questions. Local source scanning provides the fast first path. Server validation checks AI citations against numbered excerpts.
+**How we built it:** React, TypeScript, Vite, JSZip, GitHub REST API, a Vercel Node Function and Gemini for optional explanations. Local source scanning provides the fast first path. Server validation checks AI citations against numbered excerpts.
 
 **Limits:** Frontend React/Vite scope. A citation validates location, not semantic correctness. The app does not prove authorship, deployment success or learning outcomes. It does not run imported code. The AI endpoint needs rate limits before broad release.
 

@@ -2,7 +2,9 @@
 
 **Understand the code you ship.**
 
-Recode is for a developer who used AI tools or teammates to ship a project and wants to explain the part they worked on. Import a small public GitHub repository or ZIP, select the frontend path, follow four short source-backed stops, and answer five multiple-choice questions. Every answer points back to a file. The longer Gemini-powered explanations and question sections are optional.
+[Live app](https://recode-lac.vercel.app/) · [Source repository](https://github.com/SwiftDG/Recode2026)
+
+Recode is for a developer who used AI tools or teammates to ship a project and wants to explain the part they worked on. Import a small public GitHub repository or ZIP, select the frontend path, follow four short source-backed stops, and answer five multiple-choice questions. Every answer points back to a file. Longer Gemini explanations are optional and must be checked against the cited source.
 
 Built during ForgeHacks 2026 by David Gilbert and Goodness for AI + Education. It is practice, not a certificate, authorship detector, security scanner or proof that code runs as described.
 
@@ -11,7 +13,7 @@ Built during ForgeHacks 2026 by David Gilbert and Goodness for AI + Education. I
 1. Open the live site and choose **Try the guided project**. No account or API call is needed for the first walkthrough.
 2. Choose the frontend path and tap **Show me my project**. Follow the stack, entry, interaction, and style/build stops. Expand a source citation.
 3. Take the five-question check and review a miss. Continue into eight frontend reading areas. Use a public GitHub URL or ZIP to repeat with your own small React project.
-4. To try Gemini, opt in to sending selected excerpts. On a stop or full reading area, ask for more detail; after the check, request an extra question section. If the provider is unavailable, the local path continues.
+4. To try Gemini, opt in to sending selected excerpts. On a stop or full reading area, ask for more detail. If the provider is unavailable, the local path continues.
 
 ## What runs where
 
@@ -37,7 +39,7 @@ In another terminal:
 npm run dev -- --host 0.0.0.0
 ```
 
-The four-stop walkthrough and five-question check work without a key or API server. For production, add `GEMINI_API_KEY` to Vercel server environment variables; `GEMINI_MODEL` is optional and defaults to `gemini-3.8-flash`. Do not use a `VITE_` prefix for the key. Redeploy after changing environment variables. `npm run build`, `npm run lint` and `npm test` are the local checks.
+The four-stop walkthrough and five-question check work without a key or API server. For production, add `GEMINI_API_KEY` to Vercel server environment variables; `GEMINI_MODEL` is optional and defaults to `gemini-3.5-flash-lite`, with a fallback to `gemini-3.1-flash-lite` on temporary overload when no model is pinned. Do not use a `VITE_` prefix for the key. Redeploy after changing environment variables. `npm run build`, `npm run lint` and `npm test` are the local checks.
 
 ## Input and privacy limits
 
@@ -47,7 +49,7 @@ The public AI endpoint has no account or rate limiter and may incur API charges.
 
 ## Scope and team
 
-Frontend path for small React/Vite JS/TS projects. No backend or AI/ML learning paths yet. The first five questions test the learner's ability to locate evidence and explain cautious claims. Eight optional reading areas cover stack, entry, components, navigation, state, requests, styles and build evidence. Optional Gemini sections offer up to ten more project-specific questions each. Fifty is a ceiling across five sections, not a guaranteed set.
+Frontend path for small React/Vite JS/TS projects. No backend or AI/ML learning paths yet. The five scored questions test the learner's ability to locate evidence and explain cautious claims. Eight optional reading areas cover stack, entry, components, navigation, state, requests, styles and build evidence. Generated questions are excluded from the user flow because a valid source line alone cannot verify an answer key.
 
 - David Gilbert: product, frontend, AI integration, deployment, testing, README and submission.
 - Goodness: demo video and presentation.
