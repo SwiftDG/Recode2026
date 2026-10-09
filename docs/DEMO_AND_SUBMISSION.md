@@ -1,53 +1,43 @@
-# Recode demo and submission handoff
+# Recode 2026: demo and submission handoff
 
-## One sentence
+## The story
 
-Recode turns a developer's own small project into a role-specific code reading path and a source-linked understanding check, so they can explain the frontend they shipped with AI tools or teammates.
+A developer shipped a working app with AI tools or teammates. Someone asks what starts it, what changes when a user interacts, and what stack it uses. Recode turns that developer's small project into a four-stop source-backed walkthrough and a quick five-question check. It gives them words they can verify, not a claim that they authored every file.
 
-## Demo project
+## Record this actual flow
 
-Use this freshly built Recode repository once the full update is pushed. It is a real project made within ForgeHacks. Do not use Vouch or imply the project proves who authored each file. Keep the guided example as a fallback for import speed, but the hero demo should analyze the actual public repository.
-
-Before recording: open the production URL; import the public GitHub URL; accept source sharing; preload the first two lessons; run a quiz question; verify each cited line really supports the spoken claim. If a response is weak, choose another real question rather than edit the generated words into a false claim.
-
-## Goodness: video deliverables
-
-Goodness owns the presentation cut, not the AI service. Aim for a clear 90–120 second MP4, a legible thumbnail still, and an upload URL suitable for the Devpost submission. Record the actual working browser flow at readable zoom, add captions, balance audio, and verify the final exported video plays on a phone and laptop. No fake dashboard, generated people, invented user quote, or fabricated score.
-
-| Time | Screen | Narration point |
+| Time | Screen | What to show |
 | --- | --- | --- |
-| 0–10 s | Real code and an interview-style question | AI can help ship quickly; explaining the app remains the developer's job. |
-| 10–25 s | Import this public ForgeHacks repo | Recode reads the source without running it. |
-| 25–40 s | Choose Frontend and approve sharing | The role is self-declared; Recode does not claim authorship. |
-| 40–70 s | Entry point chapter, open a citation at the line | Explanation is tied to a source file. Follow main → App or another verified flow. |
-| 70–95 s | Answer one MCQ, include a wrong answer and open its citation | The answer gives a reason and evidence, not a bare score. |
-| 95–115 s | Review screen and next action | Return to missed code; frontend React/Vite scope and AI limitations. |
+| 0–12 s | Person asks how the app works | State the uncomfortable moment without mocking AI-assisted builders. |
+| 12–25 s | Import the public Recode repo or use the guided project | Show real files, no fake statistics. |
+| 25–55 s | Frontend path and two of four stops | Expand one source citation. Point to the exact line. |
+| 55–80 s | Five-question check | Give one wrong answer, read the explanation, expand its file reference. |
+| 80–105 s | Review | Show the score and next file to inspect. Say it is practice, not certification. |
+| 105–120 s | Optional Gemini depth | Only include if the production response actually works and supports its claim. Otherwise end on the working check. |
 
-David supplies a deployed URL, final repository URL, and a tested route through the demo. Goodness should record after David verifies the live model response. If recording early, make a rough cut from the current local flow, then replace clips after deployment. The final MP4 and thumbnail are Goodness's handoff to David; David submits on Devpost.
+Record the first rough cut early. Verify the mobile export, readable captions, balanced audio, live URL and actual source references. Goodness owns the final video and presentation; David supplies the working route and checks the spoken technical claims. No Vouch footage, fabricated testimonial or invented accuracy.
 
-## Devpost copy draft
+## Devpost copy, to verify against the final build
 
 **Title:** Recode 2026
 
-**Tagline:** Understand the frontend of the project you shipped.
+**Tagline:** Understand the code you ship.
 
-**Problem:** Developers can use AI coding tools and collaborate to ship a working app yet struggle to explain its architecture, stack or code path in an interview, team review or hackathon demo. Generic framework lessons and a one-off code explanation do not teach the specific project in front of them.
+**Problem:** People can ship with AI coding tools or a team but still struggle to explain their own project's stack, entry point and interaction in a review, interview or hackathon demo.
 
-**What it does:** Recode imports a small public GitHub repository or ZIP, asks for the learner's real role, and creates a frontend reading path through the stack, entry point, components, navigation, state, requests, styling and build evidence. It gives source-linked explanations and up to 50 role-specific MCQs in five sections. After each answer, the learner can inspect the cited code. The final review points to missed areas.
+**What it does:** Recode accepts a small public GitHub repo or ZIP, asks which role the learner wants to understand, and guides frontend developers through four source-backed stops. A five-question check returns immediate feedback and a cited file. Optional Gemini requests add depth and longer question sections. The learner can continue through the core path even if Gemini is unavailable.
 
-**How we built it:** React, TypeScript, Vite, JSZip, GitHub REST API, a Vercel Node Function and Gemini JSON output. The server selects numbered excerpts, treats repository text as untrusted input, and validates returned citation paths and line numbers. The browser imports source without executing it.
+**How we built it:** React, TypeScript, Vite, JSZip, GitHub REST API, a Vercel Node Function and Gemini for optional explanations/questions. Local source scanning provides the fast first path. Server validation checks AI citations against numbered excerpts.
 
-**Challenges and limits:** Generating meaningful questions from a sparse or unusual repo is hard. Recode returns fewer than 50 rather than padding with trivia. A valid source citation does not guarantee the model's interpretation; users must inspect the evidence. This version focuses on frontend React/Vite projects and does not verify who wrote code or certify mastery.
+**Limits:** Frontend React/Vite scope. A citation validates location, not semantic correctness. The app does not prove authorship, deployment success or learning outcomes. It does not run imported code. The AI endpoint needs rate limits before broad release.
 
-**Next:** Better repository coverage, other roles, question quality review, progress persistence and protection against public endpoint abuse.
-
-Before submission, insert the actual live URL, repository URL, video URL, real screenshots, exact event sponsor attribution (if a sponsor service is used), and the required Devpost fields from the participant packet. Confirm both teammates are registered and on the same Devpost team. Choose AI + Education at submission because track choice is final.
+Before submitting: add the actual live URL, repository URL, video URL, screenshots, required track and sponsor credit according to the participant packet. Confirm Goodness is registered and attached to the Devpost team. The track choice is final when submitted.
 
 ## Final check
 
-- Public repo contains commits made within the ForgeHacks window; README and deployment instructions are accurate.
-- Both teammates registered and attached to the Devpost team.
-- Production import, first lesson, citation, quiz and review actually work.
-- No key or `.env.local` committed. API quota/spend cap set before wide sharing.
-- Video is uploaded, linked, audible and legible. Demo and source links open without login.
-- Submit before Saturday, October 10, 12:00 PM ET / 5:00 PM WAT. Verify exact packet requirements and sponsor attribution in the submission form.
+- The public repository contains event-window commits and an accurate README.
+- The deployed guided path reaches review without Gemini. A real public repo import also works.
+- Optional Gemini depth is tested or honestly excluded from the video.
+- No API key or `.env.local` is committed. Quota and spending controls are set.
+- Goodness's video link opens without login and plays with legible text on a phone.
+- Submit before Saturday, October 10, 12:00 PM ET / 5:00 PM WAT, subject to the packet's source-of-truth requirements.

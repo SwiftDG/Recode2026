@@ -57,11 +57,12 @@ export async function importGitHub(value: string): Promise<Project> {
 }
 
 export const example: Project = { name: 'example/profile-studio', source: 'guided example', files: [
-  { path: 'package.json', content: '{"scripts":{"dev":"vite","build":"vite build"},"dependencies":{"react":"^19.0.0","react-dom":"^19.0.0"},"devDependencies":{"vite":"^5.0.0","typescript":"^5.0.0"}}' },
-  { path: 'src/main.tsx', content: "import { createRoot } from 'react-dom/client'; import App from './App'; import './index.css'; createRoot(document.getElementById('root')!).render(<App />);" },
-  { path: 'src/App.tsx', content: "import { useState } from 'react'; export default function App() { const [name, setName] = useState(''); return <input value={name} onChange={event => setName(event.target.value)} /> }" },
-  { path: 'src/index.css', content: 'body { font-family: Inter, sans-serif; margin: 0; }' },
-  { path: 'vite.config.ts', content: "import { defineConfig } from 'vite'; export default defineConfig({})" },
+  { path: 'package.json', content: JSON.stringify({ scripts: { dev: 'vite', build: 'vite build' }, dependencies: { react: '^19.0.0', 'react-dom': '^19.0.0' }, devDependencies: { vite: '^5.0.0', typescript: '^5.0.0' } }, null, 2) },
+  { path: 'index.html', content: '<html>\n  <body>\n    <div id="root"></div>\n    <script type="module" src="/src/main.tsx"></script>\n  </body>\n</html>' },
+  { path: 'src/main.tsx', content: "import { createRoot } from 'react-dom/client'\nimport App from './App'\nimport './index.css'\n\ncreateRoot(document.getElementById('root')!).render(<App />)" },
+  { path: 'src/App.tsx', content: "import { useState } from 'react'\n\nexport default function App() {\n  const [name, setName] = useState('')\n  return (\n    <main>\n      <label htmlFor=\"name\">Your name</label>\n      <input id=\"name\" value={name} onChange={event => setName(event.target.value)} />\n      <p>Welcome, {name || 'friend'}.</p>\n    </main>\n  )\n}" },
+  { path: 'src/index.css', content: "body { font-family: Arial, sans-serif; margin: 0; }\nmain { max-width: 32rem; margin: 4rem auto; }\ninput { display: block; padding: 0.75rem; }" },
+  { path: 'vite.config.ts', content: "import { defineConfig } from 'vite'\nexport default defineConfig({})" },
 ] }
 
 export function makeTopics(project: Project): Topic[] {

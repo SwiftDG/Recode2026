@@ -1,79 +1,55 @@
 # Recode 2026
 
-**Read the project you built. Explain the part you worked on.**
+**Understand the code you ship.**
 
-ForgeHacks 2026 · AI + Education · built during the event by David Gilbert and Goodness.
+Recode is for a developer who used AI tools or teammates to ship a project and wants to explain the part they worked on. Import a small public GitHub repository or ZIP, select the frontend path, follow four short source-backed stops, and answer five multiple-choice questions. Every answer points back to a file. The longer Gemini-powered explanations and question sections are optional.
 
-Recode is for a developer who can ship quickly with AI tools or a team, but struggles to explain the actual code when a teammate, manager, interviewer or hackathon judge asks. They import a small React/Vite project, choose their real role, read eight source-linked frontend chapters, then answer up to 50 project-specific multiple-choice questions in five sections. Wrong answers point back to a file and line. The final review shows what to revisit; it does not claim that the learner wrote each file or certify competence.
+Built during ForgeHacks 2026 by David Gilbert and Goodness for AI + Education. It is practice, not a certificate, authorship detector, security scanner or proof that code runs as described.
 
-## Demo flow
+## Try it
 
-1. Import a public GitHub repository or a ZIP. The guided project is a small fixture for a quick walkthrough.
-2. Choose **Frontend developer** and confirm permission to send selected source excerpts to Google Gemini.
-3. Read the stack and entry point chapter. Open the cited file line and follow the code trace. Open another chapter to show the path is role-specific.
-4. Start the understanding check. Choose an answer, inspect the explanation and file citation. The five sections generate up to ten questions each as the learner advances.
-5. End on the review, showing misses and the source to read again.
+1. Open the live site and choose **Try the guided project**. No account or API call is needed for the first walkthrough.
+2. Choose the frontend path and tap **Show me my project**. Follow the stack, entry, interaction, and style/build stops. Expand a source citation.
+3. Take the five-question check and review a miss. Continue into eight frontend reading areas. Use a public GitHub URL or ZIP to repeat with your own small React project.
+4. To try Gemini, opt in to sending selected excerpts. On a stop or full reading area, ask for more detail; after the check, request an extra question section. If the provider is unavailable, the local path continues.
 
-## Why this is different
+## What runs where
 
-A code assistant can explain a selected file. Recode organizes a *whole small project* into a role-specific reading path, demands source references for explanations and questions, and lets the learner practice defending its details. The current build covers frontend work in React/Vite projects; it does not claim to teach every stack or every role.
+- React, TypeScript and Vite render the browser interface. JSZip extracts ZIPs; the GitHub REST API and raw file URLs read public repositories. Imported code is not run or installed.
+- `src/project.ts` filters readable files and finds topic evidence. `src/learning.ts` builds the immediate walkthrough and five-question practice set from file patterns. These rules are deliberately limited and can miss code structures. They do not infer authorship or hosting from a dependency.
+- `api/analyze.js` calls `server/analysis.mjs` in a Vercel Function for optional Gemini output. The server sends selected numbered excerpts, checks response shape and citation paths/lines, and retries a transient 429 or 503 once. A valid citation does not prove the interpretation is right.
+- Progress stays in the browser session. There is no user account or project database.
 
-## Architecture
+## Run locally
 
-- Vite + React + TypeScript browser app. `src/project.ts` imports a public GitHub repository through the GitHub API or extracts a local ZIP with JSZip. It filters supported source files and assembles chapter evidence.
-- `api/analyze.js` is a Vercel Function. It calls `server/analysis.mjs`, which selects relevant numbered source excerpts and calls Gemini's generateContent JSON mode.
-- Every returned citation must match a supplied file and line. The model's *semantic interpretation* cannot be mechanically guaranteed; users can expand each citation and inspect the code.
-- Questions are generated in five batches to avoid a long initial wait. Each batch may contain fewer than ten if evidence is thin. All results are local to the browser session; no project database or authentication is included.
-
-## Local setup (Termux or laptop)
-
-Use Node 20+ and the repository's Vite 5 dependencies on Termux. The source bundle does not replace your package lock.
+Use Node 20+.
 
 ```bash
-npm install
-npm install jszip lucide-react
-npm pkg set 'scripts.dev:api=node --env-file=.env.local server/dev.mjs' 'scripts.test=node --test server/*.test.mjs'
+npm ci
 cp .env.example .env.local
-```
-
-Replace the placeholder in `.env.local` with a Gemini API key. Never commit this file or put the key in a `VITE_` variable.
-
-In **two Termux sessions**, from the project directory:
-
-```bash
+# Add GEMINI_API_KEY to .env.local only if testing the optional AI path.
 npm run dev:api
 ```
+
+In another terminal:
 
 ```bash
 npm run dev -- --host 0.0.0.0
 ```
 
-Open the URL Vite prints. The Vite proxy sends `/api/analyze` to the local Node server on port 8787. `npm run build` checks the production frontend; `npm test` checks the analysis contract. If the key is absent, import still works but lesson generation gives a configuration error.
+The four-stop walkthrough and five-question check work without a key or API server. For production, add `GEMINI_API_KEY` to Vercel server environment variables; `GEMINI_MODEL` is optional and defaults to `gemini-3.8-flash`. Do not use a `VITE_` prefix for the key. Redeploy after changing environment variables. `npm run build`, `npm run lint` and `npm test` are the local checks.
 
-## Deploy
+## Input and privacy limits
 
-1. Push the source to the fresh public GitHub repository created during ForgeHacks. Keep `.env.local` out of Git.
-2. Import the repo into Vercel. Framework preset **Vite**; build command `npm run build`; output `dist`. The root `api/analyze.js` deploys as a Node Vercel Function.
-3. In Vercel project settings, add `GEMINI_API_KEY` as a server environment variable for Production and Preview. Optionally set `GEMINI_MODEL` (default `gemini-3.8-flash`). Redeploy after adding it.
-4. Test a real repository import, chapter generation, quiz answer and review on the deployed URL before recording.
+Public GitHub URL or ZIP up to 10 MB, at most 160 supported source files and 2 MB extracted text. Files above 35 KB, lockfiles, dependencies, common secret files and build output are skipped. A secret can still appear inside ordinary code. **Do not import confidential code or secrets.** AI requests send excerpts only after an explicit opt-in. GitHub's unauthenticated API may rate limit imports; ZIP is the alternative.
 
-An unauthenticated public AI endpoint can be abused and incur API charges. Apply quota limits or an access gate before sharing the deployed URL widely. Keep the model account's spending cap low. This hackathon build has no user account, persistent session or rate limiter.
+The public AI endpoint has no account or rate limiter and may incur API charges. Set provider quota/spend limits and protect it before broader release. Sparse or unusual repositories can lead to generic or incomplete local observations. Gemini may be slow or unavailable; its content can be wrong even with a valid file reference.
 
-## Input and privacy boundaries
+## Scope and team
 
-- Public GitHub URL `https://github.com/owner/repo` or ZIP at most 10 MB. Import supports at most 160 readable source files and 2 MB extracted text; files above 35 KB are skipped.
-- Only selected excerpts (about 155 KB maximum per request, with a smaller model context) are sent for analysis after explicit user confirmation. This is sampling, not complete static analysis of every line.
-- Dependencies, generated directories, common secret files and lockfiles are skipped. A secret can still be embedded in an ordinary source file. **Do not import confidential code or secrets.**
-- The importer never runs, installs or builds imported code. There is no private GitHub OAuth access. GitHub's unauthenticated API limit may require ZIP fallback.
-- A citation validator checks file paths and line numbers, not the factual correctness of the explanation or answer. Read the cited code. Deployment providers are only stated when source evidence exists.
-
-## Team and submission
+Frontend path for small React/Vite JS/TS projects. No backend or AI/ML learning paths yet. The first five questions test the learner's ability to locate evidence and explain cautious claims. Eight optional reading areas cover stack, entry, components, navigation, state, requests, styles and build evidence. Optional Gemini sections offer up to ten more project-specific questions each. Fifty is a ceiling across five sections, not a guaranteed set.
 
 - David Gilbert: product, frontend, AI integration, deployment, testing, README and submission.
-- Goodness: demo video editing and presentation.
+- Goodness: demo video and presentation.
 
-Submit under **AI + Education** with the public repository, live demo, concise description, screenshots and a short video showing the real import → learning → question → source evidence → review flow. Follow the ForgeHacks participant packet for exact submission fields and sponsor attribution.
-
-## Current limits
-
-Frontend role only; small React/Vite JS/TS projects. There is no claim of authorship, AI-use detection, correctness verification or verified learning outcomes. No code execution or in-browser editor. Fifty questions is a ceiling, not a fabricated minimum. An AI response with malformed or unsupported citations is rejected with a retry path.
+See `docs/DEMO_AND_SUBMISSION.md` for the video flow and final submission checks. Use the participant packet as the source of truth for the exact ForgeHacks fields and sponsor attribution.
