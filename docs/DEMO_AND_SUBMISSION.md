@@ -1,43 +1,36 @@
-# Recode 2026: demo and submission handoff
+# Recode 2026: final handoff
 
-## The story
+## Submission deadline
 
-A developer shipped a working app with AI tools or teammates. Someone asks what starts it, what changes when a user interacts, and what stack it uses. Recode turns that developer's small project into a four-stop source-backed walkthrough and a quick five-question check. It gives them words they can verify, not a claim that they authored every file.
+Saturday October 10, 2026 at **5:00 PM WAT**. Aim to have the source, live deployment and public video link ready before 3:00 PM WAT. The Devpost page requires a public video of 2–4 minutes, a GitHub repository and README, a written description, the AI + Education track, and screenshots, diagram or deployment link. A missing video or code makes the entry ineligible. The track cannot be changed after submission. Confirm Goodness is registered and added to the Devpost team. The participant packet link was not accessible from this environment; check its sponsor attribution details before final submission. No sponsor credits are claimed as used.
 
-## Record this actual flow
+## Demo route for Goodness or backup recorder
 
-| Time | Screen | What to show |
-| --- | --- | --- |
-| 0–12 s | Person asks how the app works | State the uncomfortable moment without mocking AI-assisted builders. |
-| 12–25 s | Import the public Recode repo or use the guided project | Show real files, no fake statistics. |
-| 25–55 s | Frontend path and two of four stops | Expand one source citation. Point to the exact line. |
-| 55–80 s | Five-question check | Give one wrong answer, read the explanation, expand its file reference. |
-| 80–95 s | Review | Show the score and next file to inspect. Say it is practice, not certification. |
-| 95–120 s | Interview practice | Open the interview room, answer one question about the imported project, and show the source-linked note. Include Gemini feedback only if the production response works and supports its claim. |
+Use the real public `SwiftDG/nexstore-ui` import, which loaded 23 readable files on the live site during testing. If its API import is rate limited, use the guided example and say that it is an example. Record the updated deployment after pushing this change, not the old three-question build.
 
-Record the first rough cut early. Verify the mobile export, readable captions, balanced audio, live URL and actual source references. Goodness owns the final video and presentation; David supplies the working route and checks the spoken technical claims. No Vouch footage, fabricated testimonial or invented accuracy.
+| Time | What to show and say |
+| --- | --- |
+| 0:00–0:20 | “AI tools can help you ship a project. Then someone asks you to explain a feature you built. Recode is practice for that moment.” Show the actual question on screen, no staged employer testimonial. |
+| 0:20–0:45 | Paste the Nexstore GitHub URL, load 23 readable files, move the source map and select a real file. Say Recode reads source but does not run or certify it. |
+| 0:45–1:15 | Open the frontend learning path. Follow an entry or state explanation, expand the code citation, then answer one MCQ and show its evidence. |
+| 1:15–2:20 | Enter Frontend developer and a few job requirements. State an honest contribution, or leave it blank if demonstrating a public repo you did not work on. Answer one project question vaguely and show Gemini asking for a specific file or decision. Answer the follow-up with source evidence. Show another round title to establish depth. |
+| 2:20–2:55 | Explain the stack: React/TypeScript/Vite, local source scanning, GitHub/ZIP import, optional Gemini through server functions, validation of line references. State that line validation does not guarantee model correctness. |
+| 2:55–3:20 | Close on the learner's next action: revisit a cited file and improve their explanation. Show the public URL and GitHub. |
 
-## Devpost copy, to verify against the final build
+If Gemini is unavailable, show the local follow-up and say AI review is temporarily unavailable. Never narrate a model result that was not visibly produced. Keep text legible on a phone. Export MP4, upload it publicly (YouTube unlisted/public or another accessible host), and open the link without signing in to verify.
 
-**Title:** Recode 2026
+## Backup cutoff
 
-**Tagline:** Understand the code you ship.
+At 3:00 PM WAT, if Goodness has not delivered a publicly playable 2–4 minute video, use the backup screen recording with the route above. A simple real screen recording with clear voice and captions is better than missing the required video. Allow time for upload and Devpost review before 5:00 PM WAT.
 
-**Problem:** People can ship with AI coding tools or a team but still struggle to explain their own project's stack, entry point and interaction in a review, interview or hackathon demo.
+## Final submission checklist
 
-**What it does:** Recode accepts a small public GitHub repo or ZIP and guides frontend developers through four source-backed stops. A five-question check returns immediate feedback and a cited file. Interview practice asks three open questions about the imported frontend project. Optional Gemini requests add source-linked explanations and unscored interview coaching. The learner can continue through the core path even if Gemini is unavailable.
-
-**How we built it:** React, TypeScript, Vite, JSZip, GitHub REST API, Vercel Functions and Gemini for optional explanations and interview coaching. Local source scanning provides the fast first path. Server validation checks AI citations against numbered excerpts.
-
-**Limits:** Frontend React/Vite scope. A citation validates location, not semantic correctness. The app does not prove authorship, deployment success or learning outcomes. It does not run imported code. Full-screen is a focus option, and tab-switch reminders do not detect cheating. No camera is used. AI endpoints need rate limits before broad release.
-
-Before submitting: add the actual live URL, repository URL, video URL, screenshots, required track and sponsor credit according to the participant packet. Confirm Goodness is registered and attached to the Devpost team. The track choice is final when submitted.
-
-## Final check
-
-- The public repository contains event-window commits and an accurate README.
-- The deployed guided path reaches review without Gemini. A real public repo import also works.
-- Optional Gemini depth is tested or honestly excluded from the video.
-- No API key or `.env.local` is committed. Quota and spending controls are set.
-- Goodness's video link opens without login and plays with legible text on a phone.
-- Submit before Saturday, October 10, 12:00 PM ET / 5:00 PM WAT, subject to the packet's source-of-truth requirements.
+- [ ] Push source files, README and docs to `SwiftDG/Recode2026`; verify commit appears on GitHub.
+- [ ] Verify the Vercel production deployment points to the new commit.
+- [ ] Import `SwiftDG/nexstore-ui` and the guided example on production.
+- [ ] Test one consented Gemini answer and a follow-up on production; show error honestly if unavailable.
+- [ ] Confirm Goodness is registered on Devpost and added as teammate if he is included.
+- [ ] Upload public 2–4 minute video and test its link in a signed-out browser.
+- [ ] Choose **AI + Education** and paste the final written description from `docs/DEVPOST_SUBMISSION.md`.
+- [ ] Add live URL and GitHub URL, plus screenshots if possible.
+- [ ] Verify any participant packet attribution instructions, then submit before 5:00 PM WAT.

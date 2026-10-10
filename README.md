@@ -2,36 +2,36 @@
 
 **Understand the code you ship.**
 
-[Live app](https://recode-lac.vercel.app/) · [Source repository](https://github.com/SwiftDG/Recode2026)
+[Try Recode](https://recode-lac.vercel.app/) · [Source](https://github.com/SwiftDG/Recode2026)
 
-Recode is for a developer who used AI tools or teammates to ship a project and wants to explain the part they worked on. Import a small public GitHub repository or ZIP, select the frontend path, follow four short source-backed stops, and answer five multiple-choice questions. Every answer points back to a file. An interview practice mode asks three open questions about the imported frontend project and lets the developer answer in their own words. Longer Gemini explanations and interview coaching notes are optional and must be checked against the cited source.
+Recode helps a developer who built with an AI coding assistant or a team learn to explain the project they shipped. Paste a public GitHub repository or upload a source ZIP. Recode reads selected files, shows an interactive map of actual filenames, teaches a short frontend path with file and line references, asks five source-based multiple-choice questions, and conducts a longer project interview. The learner selects a target role, pastes job requirements and states their own contribution. The interview contains eight rounds with a follow-up after every answer. Optional Gemini reviews the answer against selected source lines and asks a more specific follow-up.
 
-Built during ForgeHacks 2026 by David Gilbert and Goodness for AI + Education. It is practice, not a certificate, authorship detector, security scanner or proof that code runs as described.
+Built during ForgeHacks 2026 for **AI + Education**. The prompt asks for AI that helps learners move beyond memorization to understand concepts, make connections and apply what they learn. Recode applies that to code a learner has already shipped. It is practice, not proof of authorship, hiring readiness or code correctness.
 
-## Try it
+## Try it in two minutes
 
-1. Open the live site and choose **Try the guided project**. No account or API call is needed for the first walkthrough.
-2. Choose the frontend path and tap **Show me my project**. Follow the stack, entry, interaction, and style/build stops. Expand a source citation.
-3. Take the five-question check and review a miss. Continue into eight frontend reading areas. Use a public GitHub URL or ZIP to repeat with your own small React project.
-4. To try Gemini, opt in to sending selected excerpts. On a stop or full reading area, ask for more detail. If the provider is unavailable, the local path continues.
-5. From the frontend role screen or practice result, open **Practice an interview**. Enter the frontend role you are preparing for and optional role emphasis. Answer three project questions in a chat-like view. You can request full-screen focus. Tab switches are counted as interruptions, not treated as proof of cheating. Gemini coaching requires a separate opt-in because it sends both the typed answer and selected source excerpts to Google.
+1. Open the live app and import `https://github.com/SwiftDG/nexstore-ui` or tap **Try the guided project**.
+2. On the project screen, move or drag the source map and select a file. The preview comes from the imported source.
+3. Follow the frontend walkthrough and expand a citation. Take the five-question check and inspect a missed answer.
+4. Return to the project and open **Practice an interview**. Choose Frontend developer, state your contribution, optionally paste job requirements, then answer a question. Gemini review requires its own opt-in. A concrete answer gets a deeper follow-up; a vague answer should be challenged for specifics. If the AI is unavailable, the app clearly says the answer was not assessed and asks a source-backed fallback follow-up.
 
-## What runs where
+## How it works
 
-- React, TypeScript and Vite render the browser interface. JSZip extracts ZIPs; the GitHub REST API and raw file URLs read public repositories. Imported code is not run or installed.
-- `src/project.ts` filters readable files and finds topic evidence. `src/learning.ts` builds the immediate walkthrough and five-question practice set from file patterns. These rules are deliberately limited and can miss code structures. They do not infer authorship or hosting from a dependency.
-- `api/analyze.js` calls `server/analysis.mjs` in a Vercel Function for optional Gemini output. The server sends selected numbered excerpts, checks response shape and citation paths/lines, and retries a transient 429 or 503 once. A valid citation does not prove the interpretation is right.
-- `api/interview.js` calls `server/interview.mjs` for optional, unscored feedback on a typed answer. The initial three questions and fallback source reminders work without Gemini. Source references validate file and line presence, not whether a model's interpretation is correct.
-- Progress stays in the browser session. There is no user account or project database.
+- `src/project.ts` imports supported text files from a public GitHub repo or ZIP without executing the code. Common dependencies, build output, lockfiles and secret filenames are excluded. It limits input to a 10 MB ZIP or GitHub repo, 160 supported files, 35 KB per file, and 2 MB extracted text.
+- `src/learning.ts` and `src/interviewPlan.ts` create an immediate, deterministic frontend reading path, five-question check, and eight interview anchors from the imported source. A source scan provides clues, not a full semantic understanding of the repository.
+- `src/SourceOrbit.tsx` displays selectable imported files and a source excerpt. Its movement responds to pointer input and respects reduced motion.
+- `api/analyze.js` and `api/interview.js` call server modules through Vercel Functions. With consent, the server sends selected numbered excerpts and interview answers to Google Gemini. It checks response shape and that cited paths and lines exist. A valid citation does not prove that the model's interpretation is correct. The interview labels answers supported, partial or unsupported as a *practice aid*, not a hiring score.
+- The target role selector includes frontend, full-stack, backend and AI/ML. Frontend React/TypeScript projects have the most complete deterministic reading path. Other roles use interview prompts and supported files, including Python and SQL, but coverage is less mature and missing evidence must be acknowledged.
+- No account or database is used. Progress is kept in the browser session. Full-screen is optional; tab switching only triggers a refocus reminder. There is no camera or cheating detection.
 
-## Run locally
+## Local setup
 
-Use Node 20+.
+Node 20+ is required.
 
 ```bash
 npm ci
 cp .env.example .env.local
-# Add GEMINI_API_KEY to .env.local only if testing the optional AI path.
+# Add GEMINI_API_KEY only if you will test the optional AI path.
 npm run dev:api
 ```
 
@@ -41,19 +41,15 @@ In another terminal:
 npm run dev -- --host 0.0.0.0
 ```
 
-The four-stop walkthrough and five-question check work without a key or API server. For production, add `GEMINI_API_KEY` to Vercel server environment variables; `GEMINI_MODEL` is optional and defaults to `gemini-3.5-flash-lite`, with a fallback to `gemini-3.1-flash-lite` on temporary overload when no model is pinned. Do not use a `VITE_` prefix for the key. Redeploy after changing environment variables. `npm run build`, `npm run lint` and `npm test` are the local checks.
+Set `GEMINI_API_KEY` in Vercel's server environment and redeploy for Gemini. `GEMINI_MODEL` is optional. Never put the key in a `VITE_` variable or commit `.env.local`. Use `npm run build`, `npm test`, and `npm run lint` to verify locally.
 
-## Input and privacy limits
+## Privacy and limits
 
-Public GitHub URL or ZIP up to 10 MB, at most 160 supported source files and 2 MB extracted text. Files above 35 KB, lockfiles, dependencies, common secret files and build output are skipped. A secret can still appear inside ordinary code. **Do not import confidential code or secrets.** AI requests send excerpts only after an explicit opt-in. GitHub's unauthenticated API may rate limit imports; ZIP is the alternative.
+Do not import private or confidential code unless you have permission to send the excerpts and answers to Gemini. The source scan and deterministic questions work without opting in. GitHub's unauthenticated API may rate limit imports; a ZIP is the alternative. Files are not installed or run. Secret scanning catches some patterns but cannot guarantee that ordinary files contain no secrets. The public AI endpoints need authentication or rate limits before wide release, and provider spend limits should be set. Interviews can be slow when Gemini is busy. The learning path does not guarantee full project understanding. It offers repeatable questions, evidence and gaps for the learner to investigate.
 
-The public AI endpoints have no account or rate limiter and may incur API charges. Set provider quota/spend limits and protect them before broader release. Sparse or unusual repositories can lead to generic or incomplete local observations. Gemini may be slow or unavailable; its content can be wrong even with a valid file reference. The interview is practice, not hiring assessment or cheating detection. It does not use a camera. Full-screen can be declined by the browser and switching tabs is only a reminder to refocus.
+## Team and event
 
-## Scope and team
+- David Gilbert: product direction, frontend, integration, testing, deployment and written submission.
+- Goodness: demo video and presentation. Credit only work actually delivered in the final submission.
 
-Frontend path for small React/Vite JS/TS projects. No backend or AI/ML learning paths yet. The five scored questions test the learner's ability to locate evidence and explain cautious claims. Eight optional reading areas cover stack, entry, components, navigation, state, requests, styles and build evidence. Generated questions are excluded from the user flow because a valid source line alone cannot verify an answer key.
-
-- David Gilbert: product, frontend, AI integration, deployment, testing, README and submission.
-- Goodness: demo video and presentation.
-
-See `docs/DEMO_AND_SUBMISSION.md` for the video flow and final submission checks. Use the participant packet as the source of truth for the exact ForgeHacks fields and sponsor attribution.
+No sponsor credits were needed for this build. See [`docs/DEMO_AND_SUBMISSION.md`](docs/DEMO_AND_SUBMISSION.md) for the final video route and Devpost fields. The public repository was created and developed during the ForgeHacks window.

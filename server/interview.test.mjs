@@ -2,26 +2,32 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { interview } from './interview.mjs'
 
-const input = { index: 0, role: 'Frontend developer', focus: 'React', question: 'What stack?', answer: 'React renders the interface.', files: [{ path: 'package.json', content: '{\n  "dependencies": { "react": "19" }\n}' }] }
+const input = { index: 1, stage: 'main', role: 'Frontend developer', job: 'React', contribution: 'I built the component', question: 'Why React here?', answer: 'React renders the interface.', previousAnswer: '', files: [{ path: 'package.json', content: '{\n  "dependencies": { "react": "19" }\n}' }] }
+const note = { verdict: 'partial', reaction: 'You named React but have not explained the tradeoff.', followUp: 'Where does the first React component mount?', nextStep: 'Trace the entry component and its import.', citation: { path: 'package.json', line: 2 } }
+const respond = value => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(value) }] } }] }), { status: 200 })
 
-test('interview note keeps a supplied source citation and does not send a score', async () => {
+test('interviewer asks a follow-up tied to an answer and validates cited source', async () => {
   const fakeFetch = async (_url, options) => {
     const request = JSON.parse(options.body)
-    assert.equal(request.generationConfig.responseMimeType, 'application/json')
-    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ reaction: 'You identified React in the dependency list.', nextStep: 'Explain what component it renders and cite the entry point.', citation: { path: 'package.json', line: 2 } }) }] } }] }), { status: 200 })
+    assert.match(request.contents[0].parts[0].text, /React renders the interface/)
+    assert.match(request.systemInstruction.parts[0].text, /ONE specific follow-up/)
+    return respond(note)
   }
   const result = await interview(input, { key: 'test-key', fetchImpl: fakeFetch })
+  assert.equal(result.verdict, 'partial')
+  assert.equal(result.followUp, note.followUp)
   assert.equal(result.citation.line, 2)
-  assert.equal('score' in result, false)
 })
 
-test('interview rejects a citation outside selected source', async () => {
-  const fakeFetch = async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ reaction: 'This answer needs more detail.', nextStep: 'Check the project manifest again.', citation: { path: '.env', line: 1 } }) }] } }] }), { status: 200 })
-  await assert.rejects(() => interview(input, { key: 'test-key', fetchImpl: fakeFetch }), /incomplete source note/)
+test('rejects ungrounded model citation', async () => {
+  await assert.rejects(() => interview(input, { key: 'test-key', fetchImpl: async () => respond({ ...note, citation: { path: '.env', line: 1 } }) }), /incomplete source note/)
 })
 
-test('interview replaces a brace-only citation with an actual dependency line', async () => {
-  const fakeFetch = async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ reaction: 'The answer names React as a dependency.', nextStep: 'Explain how the entry file mounts the application.', citation: { path: 'package.json', line: 1 } }) }] } }] }), { status: 200 })
-  const result = await interview(input, { key: 'test-key', fetchImpl: fakeFetch })
+test('replaces brace-only citation with a meaningful source line', async () => {
+  const result = await interview(input, { key: 'test-key', fetchImpl: async () => respond({ ...note, citation: { path: 'package.json', line: 1 } }) })
   assert.deepEqual(result.citation, { path: 'package.json', line: 2 })
+})
+
+test('rejects invalid assessment labels', async () => {
+  await assert.rejects(() => interview(input, { key: 'test-key', fetchImpl: async () => respond({ ...note, verdict: 'hired' }) }), /incomplete source note/)
 })

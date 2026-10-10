@@ -4,12 +4,12 @@ export type SourceFile = { path: string; content: string }
 export type Project = { name: string; source: 'GitHub' | 'ZIP' | 'guided example'; files: SourceFile[] }
 export type Topic = { title: string; goal: string; files: SourceFile[]; finding: string }
 
-const permitted = /\.(tsx?|jsx?|css|scss|html|json|md|ya?ml|toml)$/i
+const permitted = /\.(tsx?|jsx?|css|scss|html|json|md|ya?ml|toml|py|sql|prisma|go|java|rs)$/i
 const excluded = /(^|\/)(node_modules|dist|build|coverage|\.git|\.next|vendor)(\/|$)|(^|\/)(\.env(?:\.[^/]*)?|\.npmrc|credentials\.json|package-lock\.json|yarn\.lock|pnpm-lock\.yaml)$/i
 const eligible = (path: string) => permitted.test(path) && !excluded.test(path) && !path.includes('..') && !path.startsWith('/')
 function checked(files: SourceFile[]) {
   const result = files.filter(f => eligible(f.path) && f.content.length <= 35000)
-  if (!result.length) throw new Error('No supported source files found. Try a small React/Vite JavaScript or TypeScript project.')
+  if (!result.length) throw new Error('No supported source files found. Try a smaller source ZIP or public repository.')
   if (result.length > 160 || result.reduce((n, f) => n + f.content.length, 0) > 2_000_000) throw new Error('Project exceeds the preview limit of 160 files or 2 MB of source.')
   return result
 }

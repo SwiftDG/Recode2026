@@ -11,7 +11,7 @@ export function validateInput(body) {
   if (body.role !== 'frontend') throw new Error('Only the frontend role is supported in this build.')
   if (!Array.isArray(body.files) || !body.files.length || body.files.length > 160) throw new Error('Import a supported project first.')
   const files = body.files.map(file => {
-    if (typeof file?.path !== 'string' || typeof file?.content !== 'string' || file.path.length > 250 || file.content.length > 35000 || !/\.(tsx?|jsx?|css|scss|html|json|md|ya?ml|toml)$/i.test(file.path) || /(^|\/)(\.env(?:\.[^/]*)?|\.npmrc|credentials\.json|node_modules|dist|build|coverage)(\/|$)/i.test(file.path)) throw new Error('Unsupported source file in request.')
+    if (typeof file?.path !== 'string' || typeof file?.content !== 'string' || file.path.length > 250 || file.content.length > 35000 || !/\.(tsx?|jsx?|css|scss|html|json|md|ya?ml|toml|py|sql|prisma|go|java|rs)$/i.test(file.path) || /(^|\/)(\.env(?:\.[^/]*)?|\.npmrc|credentials\.json|node_modules|dist|build|coverage)(\/|$)/i.test(file.path)) throw new Error('Unsupported source file in request.')
     if (/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\b(?:sk-[A-Za-z0-9_-]{24,}|AIza[A-Za-z0-9_-]{30,}|AKIA[A-Z0-9]{16})\b/.test(file.content)) throw new Error('Possible secret detected in source. Remove secrets before analysis.')
     return file
   })
